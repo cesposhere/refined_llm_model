@@ -19,6 +19,8 @@ This repository contains my submission for the LLM Speedrun challenge. The goal 
 
 ## How to Run
 
+Run these commands from the `starter/` directory.
+
 **1. Train the model:**
 \`\`\`bash
 python train.py --data ../data/train_corpus.txt --steps 2000 --out ckpt.pt
@@ -26,5 +28,5 @@ python train.py --data ../data/train_corpus.txt --steps 2000 --out ckpt.pt
 
 **2. Evaluate the model:**
 \`\`\`bash
-python evaluate.py --model ckpt.pt --data ../data/test_corpus.txt
+python evaluate.py --checkpoint ckpt.pt --text_file ../data/dev_eval.txt
 \`\`\`

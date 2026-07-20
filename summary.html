@@ -53,7 +53,7 @@
     
     <div class="section-box">
         <h2>Architecture & Parameters</h2>
-        <p>The final model is a custom GPT architecture strictly capped under 2,000,000 parameters. The optimal configuration was determined to be roughly ~1.1M parameters to balance learning capacity with local Windows CPU execution constraints.</p>
+        <p>The final model is a compact GPT architecture that stays under the 2,000,000 parameter cap. The saved checkpoint contains 1,731,040 parameters and evaluates successfully with the documented starter command.</p>
         <table>
             <tr>
                 <th>Parameter</th>
@@ -63,50 +63,55 @@
             <tr>
                 <td>Vocab Size</td>
                 <td>1024</td>
-                <td>Custom BPE compression minimizes Hindi UTF-8 byte fragmentation.</td>
+                <td>Matches the saved checkpoint configuration.</td>
             </tr>
             <tr>
                 <td>Block Size</td>
                 <td>128</td>
-                <td>Restricts attention overhead to avoid severe computation slowdowns.</td>
+                <td>Keeps the attention window compact and consistent with evaluation.</td>
             </tr>
             <tr>
                 <td>Layers / Heads</td>
                 <td>5 / 4</td>
-                <td>Provides sufficient depth for reasoning while avoiding CPU thread-thrashing.</td>
+                <td>Balances depth and compute within the parameter cap.</td>
             </tr>
             <tr>
                 <td>Embedding Dim</td>
-                <td>128</td>
-                <td>Keeps parameter count lean; weights are tied to the LM head to save budget.</td>
+                <td>160</td>
+                <td>Used in the saved checkpoint together with tied weights.</td>
+            </tr>
+            <tr>
+                <td>Dropout</td>
+                <td>0.05</td>
+                <td>Recorded in the final checkpoint configuration.</td>
             </tr>
         </table>
     </div>
 
     <div class="section-box">
         <h2>Runlog & Notes Summary</h2>
-        <p><strong>Initial Run:</strong> The baseline model utilized a standard 256 byte-level tokenizer. While it successfully established a baseline of 2.32 Bits-Per-Byte (bpb), the context window was highly inefficient at processing multi-byte Hindi characters.</p>
-        <p><strong>Optimized Run:</strong> We deployed a BPE tokenizer (vocab 1,024), effectively compressing the corpus by 46%. This allowed the 128-token context window to view significantly more semantic data per step. Severe bottlenecks were encountered with Windows PyTorch execution (silent multiprocessing deadlocks and fp16 software emulation). We bypassed these by utilizing manual tensor slicing in place of <code>DataLoader</code>, capping <code>torch.set_num_threads(4)</code>, and running native fp32 math.</p>
+        <p><strong>Initial Run:</strong> The baseline starter configuration established a working training/evaluation pipeline and produced a 2.32 Bits-Per-Byte (bpb) score.</p>
+        <p><strong>Final Run:</strong> The saved checkpoint records a 5-layer, 4-head GPT with 160-dimensional embeddings, a 128-token context window, and tied weights. It trains for 2,000 steps, stays under the 2M parameter cap, and evaluates to 2.0934 bpb on `dev_eval.txt`.</p>
     </div>
 
     <div class="section-box">
         <h2>Metric Optimization</h2>
-        <p>Bits-Per-Byte (bpb) was optimized primarily through <strong>data compression rather than raw scaling</strong>. By reducing the number of tokens required to represent the same amount of text, the model intrinsically predicts fewer sequential steps per concept. This allowed us to keep the context window small (128) to bypass quadratic attention penalties, whilst still achieving a highly competitive bpb score within the 2,000-step constraint.</p>
+        <p>Bits-Per-Byte (bpb) is the evaluation metric reported by the starter script. The final checkpoint improves on the baseline while preserving the exact evaluation interface and the 2,000-step training cap.</p>
     </div>
 
     <div class="section-box">
         <h2>Human vs. Machine Effort Allocation</h2>
         <h3>Human Contribution:</h3>
         <ul>
-            <li><strong>Strategic Direction:</strong> Defined the architectural boundaries, parameter caps, and optimization goals.</li>
-            <li><strong>Constraint Management:</strong> Identified Windows-specific hardware bottlenecks (CPU thrashing, `spawn` vs `fork` multiprocessing deadlocks, emulation traps) and dictated the necessary workarounds.</li>
-            <li><strong>Debugging Logic:</strong> Diagnosed Time Limit Exceeded (TLE) errors in the tokenizer and terminal buffering issues during the training loop.</li>
+            <li><strong>Strategic Direction:</strong> Defined the parameter cap, step cap, and evaluation target.</li>
+            <li><strong>Constraint Management:</strong> Kept the training and evaluation commands aligned with the starter interface and relative paths.</li>
+            <li><strong>Debugging Logic:</strong> Confirmed that the checkpoint loads and evaluates successfully from the starter directory.</li>
         </ul>
         <h3>Machine Contribution (Coding Agent):</h3>
         <ul>
-            <li><strong>Code Generation:</strong> Authored the pure-Python standard library BPE tokenizer implementation.</li>
-            <li><strong>Algorithmic Optimization:</strong> Wrote the regex-based word caching logic to reduce $O(N^2)$ execution times to $O(1)$ lookups.</li>
-            <li><strong>Boilerplate & Formatting:</strong> Generated the PyTorch training loops, implemented the Cosine Learning Rate scheduler, and formatted this HTML summary and Markdown documentation.</li>
+            <li><strong>Code Generation:</strong> Produced the training, evaluation, and model code used by the starter workflow.</li>
+            <li><strong>Documentation Cleanup:</strong> Updated the run log, notes, and summary to match the actual checkpoint metadata.</li>
+            <li><strong>Verification:</strong> Ran the evaluation command and confirmed the final bpb output.</li>
         </ul>
     </div>
 
